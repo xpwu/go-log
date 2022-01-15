@@ -80,14 +80,19 @@ func (n *node) String() string {
 }
 
 func (n *node) Len() int {
+  if n == nil {
+    return 0
+  }
   return n.bytePos+len(n.value)
 }
 
 func (n *node) WriteToBuilder(b *strings.Builder) {
   b.Grow(n.Len())
-  for p := n; p != nil; p = p.pre {
-    b.WriteString(p.value)
+  if n == nil {
+    return
   }
+  n.pre.WriteToBuilder(b)
+  b.WriteString(n.value)
 }
 
 type Logger struct {
