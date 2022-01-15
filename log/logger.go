@@ -3,6 +3,7 @@ package log
 import (
   "github.com/xpwu/go-log/log/level"
   sysLog "log"
+  "strings"
   "unsafe"
 )
 
@@ -76,6 +77,13 @@ func (n *node) String() string {
   }
 
   return *(*string)(unsafe.Pointer(&r))
+}
+
+func (n *node) WriteToBuilder(b *strings.Builder) {
+  b.Grow(n.bytePos+len(n.value))
+  for p := n; p != nil; p = p.pre {
+    b.WriteString(p.value)
+  }
 }
 
 type Logger struct {
