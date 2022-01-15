@@ -1,26 +1,11 @@
 package log
 
 import (
-  "github.com/stretchr/testify/assert"
   "github.com/xpwu/go-log/log/level"
   sysLog "log"
-  "strings"
   "testing"
 )
 
-type writerForTest struct {
-  result string
-  t      *testing.T
-}
-
-func (w *writerForTest) Write(p []byte) (n int, err error) {
-  strs := strings.SplitN(string(p), "] ", 2)
-  if assert.Equalf(w.t, 2, len(strs), "not find '] ' sep") {
-    assert.Equal(w.t, w.result, strs[1])
-  }
-
-  return len(p), nil
-}
 
 func func1(l *sysLog.Logger) {
   func2(l)
@@ -47,45 +32,53 @@ func TestNewSysLog(t *testing.T) {
 func TestLogger_PushPrefix(t *testing.T) {
   l := NewLogger()
   w := &writerForTest{
-    result: "",
-    t:      t,
+    expected: "",
+    t:        t,
   }
+
+  oldW := Writer()
+  defer SetWriter(oldW)
+
   SetWriter(w)
 
-  w.result = "info 1\n"
+  w.expected = "info 1\n"
   l.Info("info 1")
 
   l.PushPrefix("this is push 1. ")
-  w.result = "this is push 1.  info 1\n"
+  w.expected = "this is push 1.  info 1\n"
   l.Info("info 1")
 
   l.PushPrefix("this is push 2")
-  w.result = "this is push 1.  this is push 2 info 2 info 2.1\n"
+  w.expected = "this is push 1.  this is push 2 info 2 info 2.1\n"
   l.Info("info 2 ", "info 2.1")
 
   l.PopPrefix()
-  w.result = "this is push 1.  info 3\n"
+  w.expected = "this is push 1.  info 3\n"
   l.Info("info 3")
   l.PopPrefix()
 
-  w.result = "info 4\n"
+  w.expected = "info 4\n"
   l.Info("info 4")
 }
 
 func TestLogger_PushPrefixGo(t *testing.T) {
   l := NewLogger()
   w := &writerForTest{
-    result: "",
-    t:      t,
+    expected: "",
+    t:        t,
   }
+
+  oldW := Writer()
+  defer SetWriter(oldW)
+
   SetWriter(w)
 
   l.PushPrefix("this is push 1. ")
-  w.result = "this is push 1.  info 1\n"
+  w.expected = "this is push 1.  info 1\n"
   l.Info("info 1")
 
   l.PushPrefix("this is push 2")
-  w.result = "this is push 1.  this is push 2 info 2 info 2.1\n"
+  w.expected = "this is push 1.  this is push 2 info 2 info 2.1\n"
   l.Info("info 2 ", "info 2.1")
 
   ch := make(chan int)
@@ -95,18 +88,18 @@ func TestLogger_PushPrefixGo(t *testing.T) {
     l.PopPrefix()
 
     l.PushPrefix("this is push go")
-    w.result = "this is push 1.  this is push 2 this is push go info 2.go info 2.1\n"
+    w.expected = "this is push 1.  this is push 2 this is push go info 2.go info 2.1\n"
     l.Info("info 2.go ", "info 2.1")
 
     l.PopPrefix()
     l.PopPrefix()
     l.PopPrefix()
 
-    w.result = "this is push 1.  this is push 2 info 2.go info 2.1\n"
+    w.expected = "this is push 1.  this is push 2 info 2.go info 2.1\n"
     l.Info("info 2.go ", "info 2.1")
 
     l.PushPrefix("this is push go")
-    w.result = "this is push 1.  this is push 2 this is push go info 2.go1 info 2.1\n"
+    w.expected = "this is push 1.  this is push 2 this is push go info 2.go1 info 2.1\n"
     l.Info("info 2.go1 ", "info 2.1")
 
     close(ch)
@@ -115,10 +108,10 @@ func TestLogger_PushPrefixGo(t *testing.T) {
   <-ch
 
   l.PopPrefix()
-  w.result = "this is push 1.  info 3\n"
+  w.expected = "this is push 1.  info 3\n"
   l.Info("info 3")
   l.PopPrefix()
 
-  w.result = "info 4\n"
+  w.expected = "info 4\n"
   l.Info("info 4")
 }
