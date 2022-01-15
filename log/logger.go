@@ -79,8 +79,12 @@ func (n *node) String() string {
   return *(*string)(unsafe.Pointer(&r))
 }
 
+func (n *node) Len() int {
+  return n.bytePos+len(n.value)
+}
+
 func (n *node) WriteToBuilder(b *strings.Builder) {
-  b.Grow(n.bytePos+len(n.value))
+  b.Grow(n.Len())
   for p := n; p != nil; p = p.pre {
     b.WriteString(p.value)
   }

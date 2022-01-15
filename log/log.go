@@ -41,7 +41,15 @@ func Writer() io.Writer {
   return sysLog.Writer()
 }
 
-func log(l level.Level, skipCallerDepth int, msg interface{}, message ...interface{}) {
+type BuilderWriter interface {
+  WriteToBuilder(b *strings.Builder)
+}
+
+type LenGetter interface {
+  Len() int
+}
+
+func log(l level.Level, skipCallerDepth int, msg interface{}, messages ...interface{}) {
   if configValue.Level > l {
     return
   }
@@ -56,15 +64,46 @@ func log(l level.Level, skipCallerDepth int, msg interface{}, message ...interfa
     line = 0
   }
 
-  builder := strings.Builder{}
+  // file:line [level] msg+messages
+
+  lineB := make([]byte, 0)
+  itoa(&lineB, line, -1)
+
+  levelStr := fmt.Sprintf(" [%v] ", l)
+
+  msgLen := 0
+  switch m := msg.(type) {
+  case LenGetter:
+    msgLen = m.Len()
+  case string:
+    msgLen = len(m)
+  case []byte:
+    msgLen = len(m)
+  case *string:
+    msgLen = len(*m)
+  }
+
+  // todo: 支持BuilderWriter接口
+  messagesStr := fmt.Sprint(messages...)
+
+  length := len(file) + 1 + len(lineB) + len(levelStr) + msgLen + len(messagesStr)
+
+  builder := &strings.Builder{}
+  builder.Grow(length)
+
   builder.WriteString(file)
   builder.WriteByte(':')
-  i := make([]byte, 0)
-  itoa(&i, line, -1)
-  builder.Write(i)
-  builder.WriteString(fmt.Sprintf(" [%v] ", l))
-  builder.WriteString(fmt.Sprint(msg))
-  builder.WriteString(fmt.Sprint(message...))
+  builder.Write(lineB)
+  builder.WriteString(levelStr)
+
+  if m,ok := msg.(BuilderWriter); ok {
+    m.WriteToBuilder(builder)
+  } else {
+    builder.WriteString(fmt.Sprint(msg))
+  }
+
+  builder.WriteString(messagesStr)
+
   _ = sysLog.Output(0, builder.String())
 }
 
