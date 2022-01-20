@@ -15,13 +15,11 @@ import (
 //)
 
 type config struct {
-  Level level.Level
-  Tips  string
+  Level level.Level `conf:"level,0:DEBUG; 1:INFO; 2:WARNING; 3:ERROR; 4:FATAL"`
 }
 
 var configValue = &config{
   Level: level.DEBUG,
-  Tips:  level.AllLevelTips(),
 }
 
 func init() {

@@ -16,9 +16,9 @@ func (l Level) String() string {
   return lString[l]
 }
 
-func AllLevelTips() string {
-  return "0:DEBUG; 1:INFO; 2:WARNING; 3:ERROR; 4:FATAL"
-}
+//func AllLevelTips() string {
+//  return "0:DEBUG; 1:INFO; 2:WARNING; 3:ERROR; 4:FATAL"
+//}
 
 type LStr string
 
