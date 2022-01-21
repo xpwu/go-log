@@ -2,7 +2,7 @@ package log
 
 import (
   "fmt"
-  config2 "github.com/xpwu/go-config/config"
+  "github.com/xpwu/go-config/configs"
   "github.com/xpwu/go-log/log/level"
   "io"
   sysLog "log"
@@ -24,7 +24,7 @@ var configValue = &config{
 
 func init() {
   sysLog.SetFlags(sysLog.Ldate | sysLog.Lmicroseconds)
-  config2.Unmarshal(configValue)
+  configs.Unmarshal(configValue)
 }
 
 func SetLevel(l level.Level) {
