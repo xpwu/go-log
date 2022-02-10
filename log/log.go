@@ -47,6 +47,12 @@ type LenGetter interface {
   Len() int
 }
 
+type LazyMsg func() string
+
+func (l LazyMsg) String() string {
+  return l()
+}
+
 func log(l level.Level, skipCallerDepth int, msg interface{}, messages ...interface{}) {
   if configValue.Level > l {
     return
